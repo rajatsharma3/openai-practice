@@ -1,6 +1,7 @@
 import axios from "axios";
 import dotenv from "dotenv";
-import fs from "fs";
+import FormData from "form-data";
+import * as fs from "fs";
 
 dotenv.config();
 
@@ -17,23 +18,23 @@ const data = {
   ],
 };
 
+const fileForm = new FormData();
+fileForm.append("purpose", "fine-tune");
+fileForm.append("file", fs.readFileSync("openai/mydata.jsonl"), "mydata.jsonl");
+
 export const getAnswer = async (req, res) => {
   try {
     const msg = req.body.question;
     data.messages[0].content = msg;
 
-    // const trainingData = await axios.post(
-    //   "https://api.openai.com/v1/files",
-    //   JSON.stringify(fileData),
-    //   {
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       Authorization: `Bearer ${apiKey}`,
-    //     },
-    //   }
-    // );
+    const file = await axios.post("https://api.openai.com/v1/files", fileForm, {
+      headers: {
+        ...fileForm.getHeaders(),
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
 
-    // console.log("Training Data:==>", trainingData);
+    console.log(file);
 
     const response = await axios.post(endpoint, JSON.stringify(data), {
       headers: {
